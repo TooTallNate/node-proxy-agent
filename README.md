@@ -5,12 +5,17 @@ proxy-agent
 This module provides a function that returns proxying `http.Agent` instances to
 use based off of a given proxy URI.
 
-Built-in are `http`, `https` and `socks` proxy agents. You can also define
-arbitrary proxy URI protocol handlers by adding a function that returns an
-`http.Agent` subclass for the desired "protocol".
-
 An LRU cache is used so that `http.Agent` instances are transparently re-used for
 subsequent HTTP requests to the same proxy server.
+
+The currently implemented protocol mappings are listed in the table below:
+
+
+| Protocol  | Proxy Agent for HTTP reqs | Proxy Agent for HTTPS reqs
+|:----------|:--------------------------|:---------------------------
+| `http`    | [http-proxy-agent][]      | [https-proxy-agent][]
+| `https`   | [http-proxy-agent][]      | [https-proxy-agent][]
+| `socks`   | [socks-proxy-agent][]     | [socks-proxy-agent][]
 
 
 Installation
@@ -86,3 +91,8 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+[http-proxy-agent]: https://github.com/TooTallNate/node-http-proxy-agent
+[https-proxy-agent]: https://github.com/TooTallNate/node-https-proxy-agent
+[socks-proxy-agent]: socks://github.com/TooTallNate/node-socks-proxy-agent
