@@ -35,7 +35,7 @@ var proxyUri = process.env.http_proxy || 'http://168.63.43.102:3128';
 
 var opts = {
   method: 'GET',
-  host: 'jsonip.org'
+  host: 'jsonip.org',
   path: '/',
   // this is the important part!
   agent: proxy(proxyUri)
@@ -45,8 +45,8 @@ var opts = {
 http.get(opts, onresponse);
 
 function onresponse (res) {
-  console.log(res.status, res.headers);
-  console.log(res.body);
+  console.log(res.statusCode, res.headers);
+  res.pipe(process.stdout);
 }
 ```
 
