@@ -95,4 +95,4 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 [http-proxy-agent]: https://github.com/TooTallNate/node-http-proxy-agent
 [https-proxy-agent]: https://github.com/TooTallNate/node-https-proxy-agent
-[socks-proxy-agent]: socks://github.com/TooTallNate/node-socks-proxy-agent
+[socks-proxy-agent]: https://github.com/TooTallNate/node-socks-proxy-agent
