@@ -34,11 +34,10 @@ exports.cache = new LRU(cacheSize);
  * The built-in proxy types.
  */
 
-exports.proxies = {
-  http: httpOrHttpsProxy,
-  https: httpOrHttpsProxy,
-  socks: socksProxy
-};
+exports.proxies = Object.create(null);
+exports.proxies.http = httpOrHttpsProxy;
+exports.proxies.https = httpOrHttpsProxy;
+exports.proxies.socks = socksProxy;
 
 /**
  * Attempts to get an `http.Agent` instance based off of the given proxy URI
