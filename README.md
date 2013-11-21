@@ -11,11 +11,11 @@ subsequent HTTP requests to the same proxy server.
 The currently implemented protocol mappings are listed in the table below:
 
 
-| Protocol  | Proxy Agent for HTTP reqs | Proxy Agent for HTTPS reqs
-|:----------|:--------------------------|:---------------------------
-| `http`    | [http-proxy-agent][]      | [https-proxy-agent][]
-| `https`   | [http-proxy-agent][]      | [https-proxy-agent][]
-| `socks`   | [socks-proxy-agent][]     | [socks-proxy-agent][]
+| Protocol  | Proxy Agent for `http` requests | Proxy Agent for `https` requests | Example
+|:----------|:--------------------------------|:---------------------------------|:----
+| `http`    | [http-proxy-agent][]            | [https-proxy-agent][]            | `http://proxy-server-over-tcp.com:3128`
+| `https`   | [http-proxy-agent][]            | [https-proxy-agent][]            | `https://proxy-server-over-tls.com:3129`
+| `socks`   | [socks-proxy-agent][]           | [socks-proxy-agent][]            | `socks://some-socks-proxy.com:9050`
 
 
 Installation
