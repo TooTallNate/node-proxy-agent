@@ -54,6 +54,8 @@ exports.proxies.socks = socksProxy;
 
 function proxy (uri, secure) {
 
+  if (!uri) throw new TypeError('You must pass a proxy "uri" to connect to');
+
   // parse the URI into an opts object if it's a String
   var proxyParsed = uri;
   if ('string' == typeof uri) {
