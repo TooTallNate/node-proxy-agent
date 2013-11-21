@@ -65,9 +65,7 @@ function proxy (uri, secure) {
   // get the requested proxy "protocol"
   var protocol = proxyParsed.protocol;
   if (!protocol) {
-    var types = [];
-    for (var type in proxies) types.push(type);
-    throw new TypeError('you must specify a string "protocol" for the proxy type (' + types.join(', ') + ')');
+    throw new TypeError('You must specify a string "protocol" for the proxy type (' + types().join(', ') + ')');
   }
 
   // strip the trailing ":" if present
@@ -132,4 +130,19 @@ function httpOrHttpsProxy (proxy, secure) {
 
 function socksProxy (proxy, secure) {
   return new SocksProxyAgent(proxy, secure);
+}
+
+/**
+ * Returns an Array of supported protocol string names.
+ *
+ * @return {Array}
+ * @api private
+ */
+
+function types () {
+  var rtn = [];
+  // not using Object.keys() so that we get any
+  // potential prototype values as well
+  for (var type in exports.proxies) rtn.push(type);
+  return rtn;
 }
