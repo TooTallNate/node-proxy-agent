@@ -35,6 +35,16 @@ describe('proxy-agent', function () {
     }
   });
 
+  it('should throw a TypeError for unsupported proxy protocols', function () {
+    try {
+      proxy('bad://foo.com:8888');
+      assert(false, 'unreachable');
+    } catch (e) {
+      assert.equal('TypeError', e.name);
+      assert(/unsupported proxy protocol/.test(e.message));
+    }
+  });
+
   describe('"http" proxy', function () {
     describe('to "http" endpoint', function () {
       it('should return a `HttpProxyAgent` instance', function ()  {
