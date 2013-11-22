@@ -54,7 +54,9 @@ exports.proxies.socks = socksProxy;
 
 function proxy (uri, secure) {
 
-  if (!uri) throw new TypeError('You must pass a proxy "uri" to connect to');
+  if (!uri) {
+    throw new TypeError('You must pass a proxy "uri" to connect to');
+  }
 
   // parse the URI into an opts object if it's a String
   var proxyParsed = uri;
@@ -65,7 +67,8 @@ function proxy (uri, secure) {
   // get the requested proxy "protocol"
   var protocol = proxyParsed.protocol;
   if (!protocol) {
-    throw new TypeError('You must specify a string "protocol" for the proxy type (' + types().join(', ') + ')');
+    throw new TypeError('You must specify a string "protocol" for the ' +
+                        'proxy type (' + types().join(', ') + ')');
   }
 
   // strip the trailing ":" if present
