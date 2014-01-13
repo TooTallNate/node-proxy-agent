@@ -17,6 +17,7 @@ The currently implemented protocol mappings are listed in the table below:
 | `http`    | [http-proxy-agent][]            | [https-proxy-agent][]            | `http://proxy-server-over-tcp.com:3128`
 | `https`   | [http-proxy-agent][]            | [https-proxy-agent][]            | `https://proxy-server-over-tls.com:3129`
 | `socks`   | [socks-proxy-agent][]           | [socks-proxy-agent][]            | `socks://some-socks-proxy.com:9050`
+| `pac`     | [pac-proxy-agent][]             | [pac-proxy-agent][]              | `pac+http://www.example.com/proxy.pac`
 
 
 Installation
@@ -97,3 +98,4 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [http-proxy-agent]: https://github.com/TooTallNate/node-http-proxy-agent
 [https-proxy-agent]: https://github.com/TooTallNate/node-https-proxy-agent
 [socks-proxy-agent]: https://github.com/TooTallNate/node-socks-proxy-agent
+[pac-proxy-agent]: https://github.com/TooTallNate/node-pac-proxy-agent
