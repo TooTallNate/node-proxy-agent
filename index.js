@@ -7,6 +7,7 @@ var url = require('url');
 var LRU = require('lru-cache');
 var HttpProxyAgent = require('http-proxy-agent');
 var HttpsProxyAgent = require('https-proxy-agent');
+var PacProxyAgent = require('pac-proxy-agent');
 var SocksProxyAgent = require('socks-proxy-agent');
 
 /**
@@ -38,6 +39,10 @@ exports.proxies = Object.create(null);
 exports.proxies.http = httpOrHttpsProxy;
 exports.proxies.https = httpOrHttpsProxy;
 exports.proxies.socks = socksProxy;
+
+PacProxyAgent.protocols.forEach(function (protocol) {
+  exports.proxies['pac+' + protocol] = pacProxy;
+});
 
 /**
  * Attempts to get an `http.Agent` instance based off of the given proxy URI
@@ -133,6 +138,18 @@ function httpOrHttpsProxy (proxy, secure) {
 
 function socksProxy (proxy, secure) {
   return new SocksProxyAgent(proxy, secure);
+}
+
+/**
+ * Default "pac+*" proxy URI handler.
+ *
+ * @api protected
+ */
+
+function pacProxy (proxy, secure) {
+  var agent = new PacProxyAgent(proxy, secure);
+  agent.secureEndpoint = secure;
+  return agent;
 }
 
 /**
