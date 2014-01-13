@@ -1,4 +1,11 @@
 
+1.1.0 / 2014-01-12
+==================
+
+  * gitignore: ignore development test files
+  * index: use "pac-proxy-agent" for "pac+*" proxy URLs
+  * package: update "lru-cache" to v2.5.0
+
 1.0.0 / 2013-11-21
 ==================
 
