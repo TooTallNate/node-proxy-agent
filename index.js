@@ -147,7 +147,7 @@ function socksProxy (proxy, secure) {
  */
 
 function pacProxy (proxy, secure) {
-  var agent = new PacProxyAgent(proxy, secure);
+  var agent = new PacProxyAgent(proxy);
   agent.secureEndpoint = secure;
   return agent;
 }
