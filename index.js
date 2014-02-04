@@ -5,9 +5,9 @@
 
 var url = require('url');
 var LRU = require('lru-cache');
+var PacProxyAgent = require('pac-proxy-agent');
 var HttpProxyAgent = require('http-proxy-agent');
 var HttpsProxyAgent = require('https-proxy-agent');
-var PacProxyAgent = require('pac-proxy-agent');
 var SocksProxyAgent = require('socks-proxy-agent');
 
 /**
