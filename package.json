@@ -26,11 +26,11 @@
   },
   "homepage": "https://github.com/TooTallNate/node-proxy-agent",
   "dependencies": {
+    "lru-cache": "~2.5.0",
     "pac-proxy-agent": "0",
     "http-proxy-agent": "0",
     "https-proxy-agent": "0",
-    "socks-proxy-agent": "0",
-    "lru-cache": "~2.5.0"
+    "socks-proxy-agent": "0"
   },
   "devDependencies": {
     "mocha": "~1.12.0",
