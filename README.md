@@ -12,12 +12,14 @@ subsequent HTTP requests to the same proxy server.
 The currently implemented protocol mappings are listed in the table below:
 
 
-| Protocol  | Proxy Agent for `http` requests | Proxy Agent for `https` requests | Example
-|:---------:|:-------------------------------:|:--------------------------------:|:--------:
-| `http`    | [http-proxy-agent][]            | [https-proxy-agent][]            | `http://proxy-server-over-tcp.com:3128`
-| `https`   | [http-proxy-agent][]            | [https-proxy-agent][]            | `https://proxy-server-over-tls.com:3129`
-| `socks`   | [socks-proxy-agent][]           | [socks-proxy-agent][]            | `socks://some-socks-proxy.com:9050`
-| `pac`     | [pac-proxy-agent][]             | [pac-proxy-agent][]              | `pac+http://www.example.com/proxy.pac`
+| Protocol   | Proxy Agent for `http` requests | Proxy Agent for `https` requests | Example
+|:----------:|:-------------------------------:|:--------------------------------:|:--------:
+| `http`     | [http-proxy-agent][]            | [https-proxy-agent][]            | `http://proxy-server-over-tcp.com:3128`
+| `https`    | [http-proxy-agent][]            | [https-proxy-agent][]            | `https://proxy-server-over-tls.com:3129`
+| `socks(v5)`| [socks-proxy-agent][]           | [socks-proxy-agent][]            | `socks://username:password@some-socks-proxy.com:9050` (username & password are optional)
+| `socks5`   | [socks-proxy-agent][]           | [socks-proxy-agent][]            | `socks5://username:password@some-socks-proxy.com:9050` (username & password are optional)
+| `socks4`   | [socks-proxy-agent][]           | [socks-proxy-agent][]            | `socks4://some-socks-proxy.com:9050`
+| `pac`      | [pac-proxy-agent][]             | [pac-proxy-agent][]              | `pac+http://www.example.com/proxy.pac`
 
 
 Installation
