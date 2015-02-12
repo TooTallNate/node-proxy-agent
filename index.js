@@ -39,6 +39,10 @@ exports.proxies = Object.create(null);
 exports.proxies.http = httpOrHttpsProxy;
 exports.proxies.https = httpOrHttpsProxy;
 exports.proxies.socks = socksProxy;
+exports.proxies.socks4 = socksProxy;
+exports.proxies.socks4a = socksProxy;
+exports.proxies.socks5 = socksProxy;
+exports.proxies.socks5h = socksProxy;
 
 PacProxyAgent.protocols.forEach(function (protocol) {
   exports.proxies['pac+' + protocol] = pacProxy;
