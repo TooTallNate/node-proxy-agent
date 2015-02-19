@@ -1,7 +1,7 @@
 proxy-agent
 ===========
 ### Maps proxy protocols to `http.Agent` implementations
-[![Build Status](https://travis-ci.org/TooTallNate/node-proxy-agent.png?branch=master)](https://travis-ci.org/TooTallNate/node-proxy-agent)
+[![Build Status](https://travis-ci.org/TooTallNate/node-proxy-agent.svg?branch=master)](https://travis-ci.org/TooTallNate/node-proxy-agent)
 
 This module provides a function that returns proxying `http.Agent` instances to
 use based off of a given proxy URI.
