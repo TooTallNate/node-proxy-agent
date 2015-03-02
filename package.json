@@ -30,7 +30,7 @@
     "pac-proxy-agent": "0",
     "http-proxy-agent": "0",
     "https-proxy-agent": "0",
-    "socks-proxy-agent": "0"
+    "socks-proxy-agent": "1"
   },
   "devDependencies": {
     "mocha": "~1.12.0",
