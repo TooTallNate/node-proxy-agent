@@ -1,4 +1,13 @@
 
+1.1.1 / 2015-07-01
+==================
+
+  * package: remove "superagent" dev dep (not used)
+  * use new socks-proxy-agent (#6, @MatthewMueller)
+  * README: use SVG for Travis-CI badge
+  * add more proxy types for socks proxy (#5, @andyhu)
+  * index: fix passing the `secure` flag to PacProxyAgent
+
 1.1.0 / 2014-01-12
 ==================
 
