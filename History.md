@@ -1,4 +1,13 @@
 
+2.0.0 / 2015-07-15
+==================
+
+  * package: add test case dev dependencies
+  * test: don't use `url.parse()` for one of the tests
+  * test: introduce some real test cases
+  * README: document new, simpler API
+  * refactor to inherit from "agent-base"
+
 1.1.1 / 2015-07-01
 ==================
 
