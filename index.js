@@ -5,6 +5,11 @@
 
 var url = require('url');
 var LRU = require('lru-cache');
+var extend = require('extend');
+var Agent = require('agent-base');
+var inherits = require('util').inherits;
+var debug = require('debug')('proxy-agent');
+
 var PacProxyAgent = require('pac-proxy-agent');
 var HttpProxyAgent = require('http-proxy-agent');
 var HttpsProxyAgent = require('https-proxy-agent');
@@ -14,7 +19,7 @@ var SocksProxyAgent = require('socks-proxy-agent');
  * Module exports.
  */
 
-exports = module.exports = proxy;
+exports = module.exports = ProxyAgent;
 
 /**
  * Number of `http.Agent` instances to cache.
@@ -32,21 +37,31 @@ var cacheSize = 20;
 exports.cache = new LRU(cacheSize);
 
 /**
- * The built-in proxy types.
+ * Built-in proxy types.
  */
 
 exports.proxies = Object.create(null);
 exports.proxies.http = httpOrHttpsProxy;
 exports.proxies.https = httpOrHttpsProxy;
-exports.proxies.socks = socksProxy;
-exports.proxies.socks4 = socksProxy;
-exports.proxies.socks4a = socksProxy;
-exports.proxies.socks5 = socksProxy;
-exports.proxies.socks5h = socksProxy;
+exports.proxies.socks = SocksProxyAgent;
+exports.proxies.socks4 = SocksProxyAgent;
+exports.proxies.socks4a = SocksProxyAgent;
+exports.proxies.socks5 = SocksProxyAgent;
+exports.proxies.socks5h = SocksProxyAgent;
 
 PacProxyAgent.protocols.forEach(function (protocol) {
-  exports.proxies['pac+' + protocol] = pacProxy;
+  exports.proxies['pac+' + protocol] = PacProxyAgent;
 });
+
+function httpOrHttpsProxy (opts, secureEndpoint) {
+  if (secureEndpoint) {
+    // HTTPS
+    return new HttpsProxyAgent(opts);
+  } else {
+    // HTTP
+    return new HttpProxyAgent(opts);
+  }
+}
 
 /**
  * Attempts to get an `http.Agent` instance based off of the given proxy URI
@@ -61,20 +76,17 @@ PacProxyAgent.protocols.forEach(function (protocol) {
  * @api public
  */
 
-function proxy (uri, secure) {
+function ProxyAgent (opts) {
+  if (!(this instanceof ProxyAgent)) return new ProxyAgent(opts);
+  if ('string' == typeof opts) opts = url.parse(opts);
+  if (!opts) throw new TypeError('an HTTP(S) proxy server `host` and `protocol` must be specified!');
+  debug('creating new ProxyAgent instance: %o', opts);
+  Agent.call(this, connect);
 
-  if (!uri) {
-    throw new TypeError('You must pass a proxy "uri" to connect to');
-  }
-
-  // parse the URI into an opts object if it's a String
-  var proxyParsed = uri;
-  if ('string' == typeof uri) {
-    proxyParsed = url.parse(uri);
-  }
+  this.proxies = extend(Object.create(exports.proxies), opts.proxies);
 
   // get the requested proxy "protocol"
-  var protocol = proxyParsed.protocol;
+  var protocol = opts.protocol;
   if (!protocol) {
     throw new TypeError('You must specify a string "protocol" for the ' +
                         'proxy type (' + types().join(', ') + ')');
@@ -86,74 +98,48 @@ function proxy (uri, secure) {
   }
 
   // get the proxy `http.Agent` creation function
-  var proxyFn = exports.proxies[protocol];
+  var proxyFn = this.proxies[protocol];
   if ('function' != typeof proxyFn) {
     throw new TypeError('unsupported proxy protocol: "' + protocol + '"');
   }
 
+  this.proxy = opts;
   // format the proxy info back into a URI, since an opts object
   // could have been passed in originally. This generated URI is used
   // as part of the "key" for the LRU cache
-  var proxyUri = url.format({
+  this.proxyUri = url.format({
     protocol: protocol + ':',
     slashes: true,
-    hostname: proxyParsed.hostname || proxyParsed.host,
-    port: proxyParsed.port
+    hostname: opts.hostname || opts.host,
+    port: opts.port
   });
+  this.proxyFn = proxyFn;
+}
+inherits(ProxyAgent, Agent);
 
+/**
+ *
+ */
+
+function connect (req, opts, fn) {
   // create the "key" for the LRU cache
-  var key = proxyUri;
-  if (secure) key += ' secure';
+  var key = this.proxyUri;
+  if (opts.secureEndpoint) key += ' secure';
 
   // attempt to get a cached `http.Agent` instance first
   var agent = exports.cache.get(key);
   if (!agent) {
     // get an `http.Agent` instance from protocol-specific agent function
-    agent = proxyFn(proxyParsed, secure);
+    agent = this.proxyFn(this.proxy, opts.secureEndpoint);
     if (agent) exports.cache.set(key, agent);
   } else {
-    //console.error('cache hit! %j', key);
+    debug('cache hit with key: %o', key);
   }
 
-  return agent;
-}
-
-/**
- * Default "http" and "https" proxy URI handlers.
- *
- * @api protected
- */
-
-function httpOrHttpsProxy (proxy, secure) {
-  if (secure) {
-    // HTTPS
-    return new HttpsProxyAgent(proxy);
-  } else {
-    // HTTP
-    return new HttpProxyAgent(proxy);
-  }
-}
-
-/**
- * Default "socks" proxy URI handler.
- *
- * @api protected
- */
-
-function socksProxy (proxy, secure) {
-  return new SocksProxyAgent(proxy, secure);
-}
-
-/**
- * Default "pac+*" proxy URI handler.
- *
- * @api protected
- */
-
-function pacProxy (proxy, secure) {
-  var agent = new PacProxyAgent(proxy);
-  agent.secureEndpoint = secure;
-  return agent;
+  // XXX: agent.callback() is an agent-base-ism
+  // TODO: add support for generic `http.Agent` instances by calling
+  // agent.addRequest(), but with support for <= 0.10.x and >= 0.12.x
+  agent.callback(req, opts, fn);
 }
 
 /**
