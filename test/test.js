@@ -3,89 +3,301 @@
  * Module dependencies.
  */
 
+var fs = require('fs');
+var url = require('url');
+var http = require('http');
+var https = require('https');
 var assert = require('assert');
-var proxy = require('../');
+var toBuffer = require('stream-to-buffer');
+var Proxy = require('proxy');
+var socks = require('socksv5');
+var ProxyAgent = require('../');
 
-describe('proxy-agent', function () {
+describe('ProxyAgent', function () {
+  // target servers
+  var httpServer, httpPort;
+  var httpsServer, httpsPort;
+
+  // proxy servers
+  var socksServer, socksPort;
+  var proxyServer, proxyPort;
+  var proxyHttpsServer, proxyHttpsPort;
+
+  before(function (done) {
+    // setup target HTTP server
+    httpServer = http.createServer();
+    httpServer.listen(function () {
+      httpPort = httpServer.address().port;
+      done();
+    });
+  });
+
+  before(function (done) {
+    // setup target SSL HTTPS server
+    var options = {
+      key: fs.readFileSync(__dirname + '/ssl-cert-snakeoil.key'),
+      cert: fs.readFileSync(__dirname + '/ssl-cert-snakeoil.pem')
+    };
+    httpsServer = https.createServer(options);
+    httpsServer.listen(function () {
+      httpsPort = httpsServer.address().port;
+      done();
+    });
+  });
+
+  before(function (done) {
+    // setup SOCKS proxy server
+    socksServer = socks.createServer(function(info, accept, deny) {
+      accept();
+    });
+    socksServer.listen(function() {
+      socksPort = socksServer.address().port;
+      done();
+    });
+    socksServer.useAuth(socks.auth.None());
+  });
+
+  before(function (done) {
+    // setup HTTP proxy server
+    proxyServer = Proxy();
+    proxyServer.listen(function () {
+      proxyPort = proxyServer.address().port;
+      done();
+    });
+  });
+
+  before(function (done) {
+    // setup SSL HTTPS proxy server
+    var options = {
+      key: fs.readFileSync(__dirname + '/ssl-cert-snakeoil.key'),
+      cert: fs.readFileSync(__dirname + '/ssl-cert-snakeoil.pem')
+    };
+    proxyHttpsServer = Proxy(https.createServer(options));
+    proxyHttpsServer.listen(function () {
+      proxyHttpsPort = proxyHttpsServer.address().port;
+      done();
+    });
+  });
+
+
+  after(function (done) {
+    socksServer.once('close', function () { done(); });
+    socksServer.close();
+  });
+
+  after(function (done) {
+    httpServer.once('close', function () { done(); });
+    httpServer.close();
+  });
+
+  after(function (done) {
+    httpsServer.once('close', function () { done(); });
+    httpsServer.close();
+  });
+
+  after(function (done) {
+    proxyServer.once('close', function () { done(); });
+    proxyServer.close();
+  });
+
+  after(function (done) {
+    proxyHttpsServer.once('close', function () { done(); });
+    proxyHttpsServer.close();
+  });
 
   it('should export a "function"', function () {
-    assert.equal('function', typeof proxy);
+    assert.equal('function', typeof ProxyAgent);
   });
 
-  it('should throw a TypeError if no "uri" is given', function () {
-    try {
-      proxy();
-      assert(false, 'unreachable');
-    } catch (e) {
-      assert.equal('TypeError', e.name);
-      assert(/must pass a proxy "uri"/.test(e.message));
-    }
-  });
-
-  it('should throw a TypeError if no "protocol" is given', function () {
-    try {
-      proxy({ host: 'foo.com', port: 3128 });
-      assert(false, 'unreachable');
-    } catch (e) {
-      assert.equal('TypeError', e.name);
-      assert(/must specify a string "protocol"/.test(e.message));
-      assert(/\bhttp\b/.test(e.message));
-      assert(/\bhttps\b/.test(e.message));
-      assert(/\bsocks\b/.test(e.message));
-    }
-  });
-
-  it('should throw a TypeError for unsupported proxy protocols', function () {
-    try {
-      proxy('bad://foo.com:8888');
-      assert(false, 'unreachable');
-    } catch (e) {
-      assert.equal('TypeError', e.name);
-      assert(/unsupported proxy protocol/.test(e.message));
-    }
-  });
-
-  describe('"http" proxy', function () {
-    describe('to "http" endpoint', function () {
-      it('should return a `HttpProxyAgent` instance', function ()  {
-        var agent = proxy('http://foo.com:3128', false);
-        assert.equal('HttpProxyAgent', agent.constructor.name);
+  describe('constructor', function () {
+    it('should throw a TypeError if no "proxy" argument is given', function () {
+      assert.throws(function () {
+        new ProxyAgent();
+      }, TypeError);
+    });
+    it('should throw a TypeError if no "protocol" is given', function () {
+      assert.throws(function () {
+        ProxyAgent({ host: 'foo.com', port: 3128 });
+      }, function (e) {
+        return 'TypeError' === e.name &&
+          /must specify a string "protocol"/.test(e.message) &&
+          /\bhttp\b/.test(e.message) &&
+          /\bhttps\b/.test(e.message) &&
+          /\bsocks\b/.test(e.message);
       });
     });
-    describe('to "https" endpoint', function () {
-      it('should return a `HttpsProxyAgent` instance', function ()  {
-        var agent = proxy('http://foo.com:3128', true);
-        assert.equal('HttpsProxyAgent', agent.constructor.name);
+
+    it('should throw a TypeError for unsupported proxy protocols', function () {
+      assert.throws(function () {
+        ProxyAgent('bad://foo.com:8888');
+      }, function (e) {
+        return 'TypeError' === e.name &&
+          /unsupported proxy protocol/.test(e.message);
       });
     });
   });
 
-  describe('"https" proxy', function () {
-    describe('to "http" endpoint', function () {
-      it('should return a `HttpProxyAgent` instance', function ()  {
-        var agent = proxy('https://foo.com:3128', false);
-        assert.equal('HttpProxyAgent', agent.constructor.name);
+  describe('"http" module', function () {
+    describe('over "http" proxy', function () {
+      it('should work', function (done) {
+        httpServer.once('request', function (req, res) {
+          res.end(JSON.stringify(req.headers));
+        });
+
+        var uri = 'http://127.0.0.1:' + proxyPort;
+        var agent = new ProxyAgent(uri);
+
+        var opts = url.parse('http://127.0.0.1:' + httpPort + '/test');
+        opts.agent = agent;
+
+        var req = http.get(opts, function (res) {
+          toBuffer(res, function (err, buf) {
+            if (err) return done(err);
+            var data = JSON.parse(buf.toString('utf8'));
+            assert.equal('127.0.0.1:' + httpPort, data.host);
+            assert('via' in data);
+            done();
+          });
+        });
+        req.once('error', done);
       });
     });
-    describe('to "https" endpoint', function () {
-      it('should return a `HttpsProxyAgent` instance', function ()  {
-        var agent = proxy('https://foo.com:3128', true);
-        assert.equal('HttpsProxyAgent', agent.constructor.name);
+
+    describe('over "https" proxy', function () {
+      it('should work', function (done) {
+        httpServer.once('request', function (req, res) {
+          res.end(JSON.stringify(req.headers));
+        });
+
+        var uri = 'https://127.0.0.1:' + proxyHttpsPort;
+        var proxy = url.parse(uri);
+        proxy.rejectUnauthorized = false;
+        var agent = new ProxyAgent(proxy);
+
+        var opts = url.parse('http://127.0.0.1:' + httpPort + '/test');
+        opts.agent = agent;
+
+        var req = http.get(opts, function (res) {
+          toBuffer(res, function (err, buf) {
+            if (err) return done(err);
+            var data = JSON.parse(buf.toString('utf8'));
+            assert.equal('127.0.0.1:' + httpPort, data.host);
+            assert('via' in data);
+            done();
+          });
+        });
+        req.once('error', done);
       });
     });
+
+    describe('over "socks" proxy', function () {
+      it('should work', function (done) {
+        httpServer.once('request', function (req, res) {
+          res.end(JSON.stringify(req.headers));
+        });
+
+        var uri = 'socks://127.0.0.1:' + socksPort;
+        var agent = new ProxyAgent(uri);
+
+        var opts = url.parse('http://127.0.0.1:' + httpPort + '/test');
+        opts.agent = agent;
+
+        var req = http.get(opts, function (res) {
+          toBuffer(res, function (err, buf) {
+            if (err) return done(err);
+            var data = JSON.parse(buf.toString('utf8'));
+            assert.equal('127.0.0.1:' + httpPort, data.host);
+            done();
+          });
+        });
+        req.once('error', done);
+      });
+    });
+
   });
 
-  describe('"socks" proxy', function () {
-    describe('to "http" endpoint', function () {
-      it('should return a `SocksProxyAgent` instance', function ()  {
-        var agent = proxy('socks://foo.com:3128', false);
-        assert.equal('SocksProxyAgent', agent.constructor.name);
+
+  describe('"https" module', function () {
+    describe('over "http" proxy', function () {
+      it('should work', function (done) {
+        httpsServer.once('request', function (req, res) {
+          res.end(JSON.stringify(req.headers));
+        });
+
+        var uri = 'http://127.0.0.1:' + proxyPort;
+        var agent = new ProxyAgent(uri);
+
+        var opts = url.parse('https://127.0.0.1:' + httpsPort + '/test');
+        opts.agent = agent;
+        opts.rejectUnauthorized = false;
+
+        var req = https.get(opts, function (res) {
+          toBuffer(res, function (err, buf) {
+            if (err) return done(err);
+            var data = JSON.parse(buf.toString('utf8'));
+            assert.equal('127.0.0.1:' + httpsPort, data.host);
+            done();
+          });
+        });
+        req.once('error', done);
       });
     });
-    describe('to "https" endpoint', function () {
-      it('should return a `SocksProxyAgent` instance', function ()  {
-        var agent = proxy('socks://foo.com:3128', true);
-        assert.equal('SocksProxyAgent', agent.constructor.name);
+
+    describe('over "https" proxy', function () {
+      it('should work', function (done) {
+        var gotReq = false;
+        httpsServer.once('request', function (req, res) {
+          gotReq = true;
+          res.end(JSON.stringify(req.headers));
+        });
+
+        var uri = 'https://127.0.0.1:' + proxyHttpsPort;
+        var proxy = url.parse(uri);
+        proxy.rejectUnauthorized = false;
+        var agent = new ProxyAgent(proxy);
+
+        var opts = url.parse('https://127.0.0.1:' + httpsPort + '/test');
+        opts.agent = agent;
+        opts.rejectUnauthorized = false;
+
+        var req = https.get(opts, function (res) {
+          toBuffer(res, function (err, buf) {
+            if (err) return done(err);
+            var data = JSON.parse(buf.toString('utf8'));
+            assert.equal('127.0.0.1:' + httpsPort, data.host);
+            assert(gotReq);
+            done();
+          });
+        });
+        req.once('error', done);
+      });
+    });
+
+    describe('over "socks" proxy', function () {
+      it('should work', function (done) {
+        var gotReq = false;
+        httpsServer.once('request', function (req, res) {
+          gotReq = true;
+          res.end(JSON.stringify(req.headers));
+        });
+
+        var uri = 'socks://127.0.0.1:' + socksPort;
+        var agent = new ProxyAgent(uri);
+
+        var opts = url.parse('https://127.0.0.1:' + httpsPort + '/test');
+        opts.agent = agent;
+        opts.rejectUnauthorized = false;
+
+        var req = https.get(opts, function (res) {
+          toBuffer(res, function (err, buf) {
+            if (err) return done(err);
+            var data = JSON.parse(buf.toString('utf8'));
+            assert.equal('127.0.0.1:' + httpsPort, data.host);
+            assert(gotReq);
+            done();
+          });
+        });
+        req.once('error', done);
       });
     });
   });
