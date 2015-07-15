@@ -37,7 +37,7 @@ Example
 
 ``` js
 var http = require('http');
-var proxy = require('proxy-agent');
+var ProxyAgent = require('proxy-agent');
 
 // HTTP, HTTPS, or SOCKS proxy to use
 var proxyUri = process.env.http_proxy || 'http://168.63.43.102:3128';
@@ -47,7 +47,7 @@ var opts = {
   host: 'jsonip.org',
   path: '/',
   // this is the important part!
-  agent: proxy(proxyUri)
+  agent: new ProxyAgent(proxyUri)
 };
 
 // the rest works just like any other normal HTTP request
@@ -63,10 +63,10 @@ function onresponse (res) {
 API
 ---
 
-### proxy(String uri, Boolean secure) → http.Agent
+### new ProxyAgent(Object|String opts|uri)
 
-Returns an `http.Agent` instance based off of the given proxy `uri`, and `secure`
-boolean flag. An LRU cache is used, so the same `http.Agent` instance will be
+Returns an `http.Agent` instance based off of the given proxy `opts` or URI
+string. An LRU cache is used, so the same `http.Agent` instance will be
 returned if identical args are passed in.
 
 
