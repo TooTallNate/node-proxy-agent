@@ -36,6 +36,9 @@
     "socks-proxy-agent": "2"
   },
   "devDependencies": {
-    "mocha": "~2.1.0"
+    "mocha": "2",
+    "proxy": "0.2.3",
+    "socksv5": "0.0.6",
+    "stream-to-buffer": "0.1.0"
   }
 }
