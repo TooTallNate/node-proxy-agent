@@ -83,7 +83,12 @@ function ProxyAgent (opts) {
   debug('creating new ProxyAgent instance: %o', opts);
   Agent.call(this, connect);
 
-  this.proxies = extend(Object.create(exports.proxies), opts.proxies);
+  var proxies;
+  if (opts.proxies) {
+    proxies = extend(Object.create(exports.proxies), opts.proxies);
+  } else {
+    proxies = exports.proxies;
+  }
 
   // get the requested proxy "protocol"
   var protocol = opts.protocol;
@@ -98,7 +103,7 @@ function ProxyAgent (opts) {
   }
 
   // get the proxy `http.Agent` creation function
-  var proxyFn = this.proxies[protocol];
+  var proxyFn = proxies[protocol];
   if ('function' != typeof proxyFn) {
     throw new TypeError('unsupported proxy protocol: "' + protocol + '"');
   }
