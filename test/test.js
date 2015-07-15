@@ -251,10 +251,12 @@ describe('ProxyAgent', function () {
           res.end(JSON.stringify(req.headers));
         });
 
-        var uri = 'https://127.0.0.1:' + proxyHttpsPort;
-        var proxy = url.parse(uri);
-        proxy.rejectUnauthorized = false;
-        var agent = new ProxyAgent(proxy);
+        var agent = new ProxyAgent({
+          protocol: 'https:',
+          host: '127.0.0.1',
+          port: proxyHttpsPort,
+          rejectUnauthorized: false
+        });
 
         var opts = url.parse('https://127.0.0.1:' + httpsPort + '/test');
         opts.agent = agent;
