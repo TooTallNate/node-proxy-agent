@@ -120,7 +120,7 @@ describe('ProxyAgent', function () {
         ProxyAgent({ host: 'foo.com', port: 3128 });
       }, function (e) {
         return 'TypeError' === e.name &&
-          /must specify a string "protocol"/.test(e.message) &&
+          /must specify a "protocol"/.test(e.message) &&
           /\bhttp\b/.test(e.message) &&
           /\bhttps\b/.test(e.message) &&
           /\bsocks\b/.test(e.message);
