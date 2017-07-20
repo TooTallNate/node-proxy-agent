@@ -1,4 +1,12 @@
 
+2.1.0 / 2017-07-20
+==================
+
+  * add `use strict`
+  * drop "string" from error message
+  * update pac-proxy-agent package
+  * test modern Node.js versions with Travis-CI, drop older versions
+
 2.0.0 / 2015-07-15
 ==================
 
