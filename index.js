@@ -94,7 +94,7 @@ function ProxyAgent (opts) {
   var protocol = opts.protocol;
   if (!protocol) {
     throw new TypeError('You must specify a "protocol" for the ' +
-                        'proxy type (' + types().join(', ') + ')');
+                        'proxy type (' + Object.keys(proxies).join(', ') + ')');
   }
 
   // strip the trailing ":" if present
@@ -145,19 +145,4 @@ function connect (req, opts, fn) {
   // TODO: add support for generic `http.Agent` instances by calling
   // agent.addRequest(), but with support for <= 0.10.x and >= 0.12.x
   agent.callback(req, opts, fn);
-}
-
-/**
- * Returns an Array of supported protocol string names.
- *
- * @return {Array}
- * @api private
- */
-
-function types () {
-  var rtn = [];
-  // not using Object.keys() so that we get any
-  // potential prototype values as well
-  for (var type in exports.proxies) rtn.push(type);
-  return rtn;
 }
