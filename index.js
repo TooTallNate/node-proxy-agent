@@ -6,7 +6,6 @@
 
 var url = require('url');
 var LRU = require('lru-cache');
-var extend = require('extend');
 var Agent = require('agent-base');
 var inherits = require('util').inherits;
 var debug = require('debug')('proxy-agent');
@@ -86,7 +85,7 @@ function ProxyAgent (opts) {
 
   var proxies;
   if (opts.proxies) {
-    proxies = extend(Object.create(exports.proxies), opts.proxies);
+    proxies = Object.assign({}, exports.proxies, opts.proxies);
   } else {
     proxies = exports.proxies;
   }
