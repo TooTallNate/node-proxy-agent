@@ -115,6 +115,7 @@ function ProxyAgent (opts) {
   this.proxyUri = url.format({
     protocol: protocol + ':',
     slashes: true,
+    auth:opts.auth,
     hostname: opts.hostname || opts.host,
     port: opts.port
   });
