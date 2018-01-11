@@ -110,11 +110,6 @@ describe('ProxyAgent', function () {
   });
 
   describe('constructor', function () {
-    it('should throw a TypeError if no "proxy" argument is given', function () {
-      assert.throws(function () {
-        new ProxyAgent();
-      }, TypeError);
-    });
     it('should throw a TypeError if no "protocol" is given', function () {
       assert.throws(function () {
         ProxyAgent({ host: 'foo.com', port: 3128 });
@@ -156,6 +151,56 @@ describe('ProxyAgent', function () {
             var data = JSON.parse(buf.toString('utf8'));
             assert.equal('127.0.0.1:' + httpPort, data.host);
             assert('via' in data);
+            done();
+          });
+        });
+        req.once('error', done);
+      });
+    });
+
+    describe('over "http" proxy from env', function () {
+      it('should work', function (done) {
+        httpServer.once('request', function (req, res) {
+          res.end(JSON.stringify(req.headers));
+        });
+
+        process.env.HTTP_PROXY = 'http://127.0.0.1:' + proxyPort;
+        var agent = new ProxyAgent();
+
+        var opts = url.parse('http://127.0.0.1:' + httpPort + '/test');
+        opts.agent = agent;
+
+        var req = http.get(opts, function (res) {
+          toBuffer(res, function (err, buf) {
+            if (err) return done(err);
+            var data = JSON.parse(buf.toString('utf8'));
+            assert.equal('127.0.0.1:' + httpPort, data.host);
+            assert('via' in data);
+            done();
+          });
+        });
+        req.once('error', done);
+      });
+    });
+
+    describe('with no proxy from env', function () {
+      it('should work', function (done) {
+        httpServer.once('request', function (req, res) {
+          res.end(JSON.stringify(req.headers));
+        });
+
+        process.env.NO_PROXY = '*';
+        var agent = new ProxyAgent();
+
+        var opts = url.parse('http://127.0.0.1:' + httpPort + '/test');
+        opts.agent = agent;
+
+        var req = http.get(opts, function (res) {
+          toBuffer(res, function (err, buf) {
+            if (err) return done(err);
+            var data = JSON.parse(buf.toString('utf8'));
+            assert.equal('127.0.0.1:' + httpPort, data.host);
+            assert(!('via' in data));
             done();
           });
         });
@@ -213,9 +258,7 @@ describe('ProxyAgent', function () {
         req.once('error', done);
       });
     });
-
   });
-
 
   describe('"https" module', function () {
     describe('over "http" proxy', function () {
@@ -303,5 +346,4 @@ describe('ProxyAgent', function () {
       });
     });
   });
-
 });
