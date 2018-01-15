@@ -26,7 +26,7 @@
   },
   "homepage": "https://github.com/TooTallNate/node-proxy-agent",
   "dependencies": {
-    "agent-base": "^4.0.1",
+    "agent-base": "^4.2.0",
     "debug": "^2.6.8",
     "http-proxy-agent": "^1.0.0",
     "https-proxy-agent": "^1.0.0",

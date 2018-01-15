@@ -127,7 +127,7 @@ inherits(ProxyAgent, Agent);
  *
  */
 
-function connect (req, opts, fn) {
+function connect (req, opts) {
   // create the "key" for the LRU cache
   var key = this.proxyUri;
   if (opts.secureEndpoint) key += ' secure';
@@ -142,8 +142,5 @@ function connect (req, opts, fn) {
     debug('cache hit with key: %o', key);
   }
 
-  // XXX: agent.callback() is an agent-base-ism
-  // TODO: add support for generic `http.Agent` instances by calling
-  // agent.addRequest(), but with support for <= 0.10.x and >= 0.12.x
-  agent.callback(req, opts, fn);
+  return agent;
 }
