@@ -110,8 +110,8 @@ function ProxyAgent (opts) {
 
   this.proxy = opts;
   // format the proxy info back into a URI, since an opts object
-  // could have been passed in originally. This generated URI is used
-  // as part of the "key" for the LRU cache
+  // could have been passed in originally. This generated URI is
+  // used as part of the "key" for the LRU cache
   this.proxyUri = url.format({
     protocol: protocol + ':',
     slashes: true,
@@ -137,7 +137,9 @@ function connect (req, opts) {
   if (!agent) {
     // get an `http.Agent` instance from protocol-specific agent function
     agent = this.proxyFn(this.proxy, opts.secureEndpoint);
-    if (agent) exports.cache.set(key, agent);
+    if (agent) {
+      exports.cache.set(key, agent);
+    }
   } else {
     debug('cache hit with key: %o', key);
   }
