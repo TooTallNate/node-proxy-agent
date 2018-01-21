@@ -11,8 +11,8 @@ var inherits = require('util').inherits;
 var debug = require('debug')('proxy-agent');
 var getProxyForUrl = require('proxy-from-env').getProxyForUrl;
 
-var HttpAgent = require('http').Agent;
-var HttpsAgent = require('https').Agent;
+var http = require('http');
+var https = require('https');
 var PacProxyAgent = require('pac-proxy-agent');
 var HttpProxyAgent = require('http-proxy-agent');
 var HttpsProxyAgent = require('https-proxy-agent');
@@ -59,10 +59,10 @@ PacProxyAgent.protocols.forEach(function (protocol) {
 function httpOrHttps(opts, secureEndpoint) {
   if (secureEndpoint) {
     // HTTPS
-    return new HttpsAgent();
+    return https.globalAgent;
   } else {
     // HTTP
-    return new HttpAgent()
+    return http.globalAgent;
   }
 }
 
