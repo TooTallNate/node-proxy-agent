@@ -32,6 +32,7 @@
     "https-proxy-agent": "^1.0.0",
     "lru-cache": "^2.6.5",
     "pac-proxy-agent": "^2.0.0",
+    "proxy-from-env": "^1.0.0",
     "socks-proxy-agent": "^3.0.0"
   },
   "devDependencies": {

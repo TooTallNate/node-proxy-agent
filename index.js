@@ -9,7 +9,10 @@ var LRU = require('lru-cache');
 var Agent = require('agent-base');
 var inherits = require('util').inherits;
 var debug = require('debug')('proxy-agent');
+var getProxyForUrl = require('proxy-from-env').getProxyForUrl;
 
+var http = require('http');
+var https = require('https');
 var PacProxyAgent = require('pac-proxy-agent');
 var HttpProxyAgent = require('http-proxy-agent');
 var HttpsProxyAgent = require('https-proxy-agent');
@@ -53,7 +56,17 @@ PacProxyAgent.protocols.forEach(function (protocol) {
   exports.proxies['pac+' + protocol] = PacProxyAgent;
 });
 
-function httpOrHttpsProxy (opts, secureEndpoint) {
+function httpOrHttps(opts, secureEndpoint) {
+  if (secureEndpoint) {
+    // HTTPS
+    return https.globalAgent;
+  } else {
+    // HTTP
+    return http.globalAgent;
+  }
+}
+
+function httpOrHttpsProxy(opts, secureEndpoint) {
   if (secureEndpoint) {
     // HTTPS
     return new HttpsProxyAgent(opts);
@@ -63,25 +76,16 @@ function httpOrHttpsProxy (opts, secureEndpoint) {
   }
 }
 
-/**
- * Attempts to get an `http.Agent` instance based off of the given proxy URI
- * information, and the `secure` flag.
- *
- * An LRU cache is used, to prevent unnecessary creation of proxy
- * `http.Agent` instances.
- *
- * @param {String} uri proxy url
- * @param {Boolean} secure true if this is for an HTTPS request, false for HTTP
- * @return {http.Agent}
- * @api public
- */
+function mapOptsToProxy(opts) {
+  // NO_PROXY case
+  if (!opts) {
+    return {
+      uri: 'no proxy',
+      fn: httpOrHttps
+    };
+  }
 
-function ProxyAgent (opts) {
-  if (!(this instanceof ProxyAgent)) return new ProxyAgent(opts);
   if ('string' == typeof opts) opts = url.parse(opts);
-  if (!opts) throw new TypeError('an HTTP(S) proxy server `host` and `protocol` must be specified!');
-  debug('creating new ProxyAgent instance: %o', opts);
-  Agent.call(this, connect);
 
   var proxies;
   if (opts.proxies) {
@@ -108,18 +112,46 @@ function ProxyAgent (opts) {
     throw new TypeError('unsupported proxy protocol: "' + protocol + '"');
   }
 
-  this.proxy = opts;
   // format the proxy info back into a URI, since an opts object
-  // could have been passed in originally. This generated URI is
-  // used as part of the "key" for the LRU cache
-  this.proxyUri = url.format({
-    protocol: protocol + ':',
-    slashes: true,
-    auth:opts.auth,
-    hostname: opts.hostname || opts.host,
-    port: opts.port
-  });
-  this.proxyFn = proxyFn;
+  // could have been passed in originally. This generated URI is used
+  // as part of the "key" for the LRU cache
+  return {
+    opts: opts,
+    uri: url.format({
+      protocol: protocol + ':',
+      slashes: true,
+      auth: opts.auth,
+      hostname: opts.hostname || opts.host,
+      port: opts.port
+    }),
+    fn: proxyFn,
+  }
+}
+
+/**
+ * Attempts to get an `http.Agent` instance based off of the given proxy URI
+ * information, and the `secure` flag.
+ *
+ * An LRU cache is used, to prevent unnecessary creation of proxy
+ * `http.Agent` instances.
+ *
+ * @param {String} uri proxy url
+ * @param {Boolean} secure true if this is for an HTTPS request, false for HTTP
+ * @return {http.Agent}
+ * @api public
+ */
+
+function ProxyAgent (opts) {
+  if (!(this instanceof ProxyAgent)) return new ProxyAgent(opts);
+  debug('creating new ProxyAgent instance: %o', opts);
+  Agent.call(this, connect);
+
+  if (opts) {
+    var proxy = mapOptsToProxy(opts);
+    this.proxy = proxy.opts;
+    this.proxyUri = proxy.uri;
+    this.proxyFn = proxy.fn;
+  }
 }
 inherits(ProxyAgent, Agent);
 
@@ -127,16 +159,29 @@ inherits(ProxyAgent, Agent);
  *
  */
 
-function connect (req, opts) {
+function connect (req, opts, fn) {
+  var proxyOpts = this.proxy;
+  var proxyUri = this.proxyUri;
+  var proxyFn = this.proxyFn;
+
+  // if we did not instantiate with a proxy, set one per request
+  if (!proxyOpts) {
+    var urlOpts = getProxyForUrl(opts);
+    var proxy = mapOptsToProxy(urlOpts, opts);
+    proxyOpts = proxy.opts;
+    proxyUri = proxy.uri;
+    proxyFn = proxy.fn;
+  }
+
   // create the "key" for the LRU cache
-  var key = this.proxyUri;
+  var key = proxyUri;
   if (opts.secureEndpoint) key += ' secure';
 
   // attempt to get a cached `http.Agent` instance first
   var agent = exports.cache.get(key);
   if (!agent) {
     // get an `http.Agent` instance from protocol-specific agent function
-    agent = this.proxyFn(this.proxy, opts.secureEndpoint);
+    agent = proxyFn(proxyOpts, opts.secureEndpoint);
     if (agent) {
       exports.cache.set(key, agent);
     }
@@ -144,5 +189,10 @@ function connect (req, opts) {
     debug('cache hit with key: %o', key);
   }
 
-  return agent;
+  if (!proxyOpts) {
+    agent.addRequest(req, opts);
+  } else {
+    // XXX: agent.callback() is an agent-base-ism
+    agent.callback(req, opts, fn);
+  }
 }
