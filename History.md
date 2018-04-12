@@ -1,3 +1,7 @@
+2.3.1 / 2018-04-12
+==================
+
+  * Revert socks-proxy-agent to 3.x to maintain compatibility with node 4.x
 
 2.2.0 / 2018-01-15
 ==================
