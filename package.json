@@ -33,7 +33,7 @@
     "lru-cache": "^4.1.2",
     "pac-proxy-agent": "^2.0.1",
     "proxy-from-env": "^1.0.0",
-    "socks-proxy-agent": "^4.0.0"
+    "socks-proxy-agent": "^3.0.0"
   },
   "devDependencies": {
     "mocha": "^5.0.5",
