@@ -1,10 +1,13 @@
 {
   "name": "proxy-agent",
-  "version": "2.3.1",
+  "version": "3.0.0",
   "description": "Maps proxy protocols to `http.Agent` implementations",
   "main": "index.js",
   "scripts": {
     "test": "mocha --reporter spec"
+  },
+  "engines": {
+    "node": ">=6"
   },
   "repository": {
     "type": "git",

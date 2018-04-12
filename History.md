@@ -1,3 +1,9 @@
+3.0.0 / 2018-04-12
+==================
+
+  * Upgrade socks-proxy-agent to 4.x
+  * Drop support for node <= 6
+
 2.3.1 / 2018-04-12
 ==================
 
