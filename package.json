@@ -1,6 +1,6 @@
 {
   "name": "proxy-agent",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Maps proxy protocols to `http.Agent` implementations",
   "main": "index.js",
   "scripts": {
@@ -34,7 +34,7 @@
     "http-proxy-agent": "^2.1.0",
     "https-proxy-agent": "^2.2.1",
     "lru-cache": "^4.1.2",
-    "pac-proxy-agent": "^2.0.1",
+    "pac-proxy-agent": "^3.0.0",
     "proxy-from-env": "^1.0.0",
     "socks-proxy-agent": "^4.0.1"
   },
