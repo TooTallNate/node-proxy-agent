@@ -155,6 +155,17 @@ function ProxyAgent (opts) {
 }
 inherits(ProxyAgent, Agent);
 
+
+function getProxyForOpts(opts) {
+	console.log("opts.secureEndPoint " + opts.secureEndpoint);
+		console.log("opts.secureEndpoint == true " + (opts.secureEndPoint === true));
+	if ( opts && opts.secureEndpoint ) {
+		if ( ! opts.protocol ) {
+			opts.protocol = 'https';
+		}
+	}
+	return getProxyForUrl(opts);
+}
 /**
  *
  */
@@ -166,12 +177,15 @@ function connect (req, opts, fn) {
 
   // if we did not instantiate with a proxy, set one per request
   if (!proxyOpts) {
-    var urlOpts = getProxyForUrl(opts);
+    var urlOpts = getProxyForOpts(opts);
     var proxy = mapOptsToProxy(urlOpts, opts);
     proxyOpts = proxy.opts;
     proxyUri = proxy.uri;
     proxyFn = proxy.fn;
   }
+
+	console.log("urlOpts " + JSON.stringify(urlOpts));
+	console.log("proxyOpts " + JSON.stringify(proxyOpts));
 
   // create the "key" for the LRU cache
   var key = proxyUri;
