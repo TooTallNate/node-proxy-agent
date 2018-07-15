@@ -157,19 +157,18 @@ inherits(ProxyAgent, Agent);
 
 
 function getProxyForOpts(opts) {
-	console.log("opts.secureEndPoint " + opts.secureEndpoint);
-		console.log("opts.secureEndpoint == true " + (opts.secureEndPoint === true));
 	if ( opts && opts.secureEndpoint ) {
 		if ( ! opts.protocol ) {
 			opts.protocol = 'https';
+      console.log("setting opts.protocol to HTTPS for host " + opts.host);
 		}
 	}
 	return getProxyForUrl(opts);
 }
+
 /**
  *
  */
-
 function connect (req, opts, fn) {
   var proxyOpts = this.proxy;
   var proxyUri = this.proxyUri;
