@@ -183,9 +183,6 @@ function connect (req, opts, fn) {
     proxyFn = proxy.fn;
   }
 
-  debug("urlOpts is %o", urlOpts);
-  debug("proxyOpts is %o", proxyOpts);
-
   // create the "key" for the LRU cache
   var key = proxyUri;
   if (opts.secureEndpoint) key += ' secure';
