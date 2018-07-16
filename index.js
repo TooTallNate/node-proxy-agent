@@ -159,7 +159,7 @@ inherits(ProxyAgent, Agent);
 function getProxyForOpts(opts) {
 	if ( opts && opts.secureEndpoint ) {
 		if ( ! opts.protocol ) {
-			opts.protocol = 'https';
+      opts.protocol = 'https';
       debug("Setting opts.protocol to HTTPS for host %s", opts.host);
 		}
 	}
