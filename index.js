@@ -160,7 +160,7 @@ function getProxyForOpts(opts) {
 	if ( opts && opts.secureEndpoint ) {
 		if ( ! opts.protocol ) {
 			opts.protocol = 'https';
-      console.log("setting opts.protocol to HTTPS for host " + opts.host);
+      debug("Setting opts.protocol to HTTPS for host %s", opts.host);
 		}
 	}
 	return getProxyForUrl(opts);
@@ -183,8 +183,8 @@ function connect (req, opts, fn) {
     proxyFn = proxy.fn;
   }
 
-	console.log("urlOpts " + JSON.stringify(urlOpts));
-	console.log("proxyOpts " + JSON.stringify(proxyOpts));
+  debug("urlOpts is %o", urlOpts);
+  debug("proxyOpts is %o", proxyOpts);
 
   // create the "key" for the LRU cache
   var key = proxyUri;
