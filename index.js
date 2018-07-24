@@ -155,10 +155,20 @@ function ProxyAgent (opts) {
 }
 inherits(ProxyAgent, Agent);
 
+
+function getProxyForOpts(opts) {
+	if ( opts && opts.secureEndpoint ) {
+		if ( ! opts.protocol ) {
+      opts.protocol = 'https';
+      debug("Setting opts.protocol to HTTPS for host %s", opts.host);
+		}
+	}
+	return getProxyForUrl(opts);
+}
+
 /**
  *
  */
-
 function connect (req, opts, fn) {
   var proxyOpts = this.proxy;
   var proxyUri = this.proxyUri;
@@ -166,7 +176,7 @@ function connect (req, opts, fn) {
 
   // if we did not instantiate with a proxy, set one per request
   if (!proxyOpts) {
-    var urlOpts = getProxyForUrl(opts);
+    var urlOpts = getProxyForOpts(opts);
     var proxy = mapOptsToProxy(urlOpts, opts);
     proxyOpts = proxy.opts;
     proxyUri = proxy.uri;
