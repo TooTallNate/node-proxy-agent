@@ -164,6 +164,9 @@ function connect (req, opts, fn) {
   var proxyUri = this.proxyUri;
   var proxyFn = this.proxyFn;
 
+  // default the protocol to http(s) if none is provided
+  opts.protocol = opts.protocol || opts.secureEndpoint ? 'https' : 'http';
+
   // if we did not instantiate with a proxy, set one per request
   if (!proxyOpts) {
     var urlOpts = getProxyForUrl(opts);
