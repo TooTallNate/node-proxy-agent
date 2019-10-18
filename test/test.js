@@ -144,17 +144,17 @@ describe('ProxyAgent', function () {
           res.end(JSON.stringify(req.headers));
         });
 
-        var uri = 'http://127.0.0.1:' + proxyPort;
+        var uri = 'http://localhost:' + proxyPort;
         var agent = new ProxyAgent(uri);
 
-        var opts = url.parse('http://127.0.0.1:' + httpPort + '/test');
+        var opts = url.parse('http://localhost:' + httpPort + '/test');
         opts.agent = agent;
 
         var req = http.get(opts, function (res) {
           toBuffer(res, function (err, buf) {
             if (err) return done(err);
             var data = JSON.parse(buf.toString('utf8'));
-            assert.equal('127.0.0.1:' + httpPort, data.host);
+            assert.equal('localhost:' + httpPort, data.host);
             assert('via' in data);
             done();
           });
@@ -169,17 +169,17 @@ describe('ProxyAgent', function () {
           res.end(JSON.stringify(req.headers));
         });
 
-        process.env.HTTP_PROXY = 'http://127.0.0.1:' + proxyPort;
+        process.env.HTTP_PROXY = 'http://localhost:' + proxyPort;
         var agent = new ProxyAgent();
 
-        var opts = url.parse('http://127.0.0.1:' + httpPort + '/test');
+        var opts = url.parse('http://localhost:' + httpPort + '/test');
         opts.agent = agent;
 
         var req = http.get(opts, function (res) {
           toBuffer(res, function (err, buf) {
             if (err) return done(err);
             var data = JSON.parse(buf.toString('utf8'));
-            assert.equal('127.0.0.1:' + httpPort, data.host);
+            assert.equal('localhost:' + httpPort, data.host);
             assert('via' in data);
             done();
           });
@@ -197,14 +197,14 @@ describe('ProxyAgent', function () {
         process.env.NO_PROXY = '*';
         var agent = new ProxyAgent();
 
-        var opts = url.parse('http://127.0.0.1:' + httpPort + '/test');
+        var opts = url.parse('http://localhost:' + httpPort + '/test');
         opts.agent = agent;
 
         var req = http.get(opts, function (res) {
           toBuffer(res, function (err, buf) {
             if (err) return done(err);
             var data = JSON.parse(buf.toString('utf8'));
-            assert.equal('127.0.0.1:' + httpPort, data.host);
+            assert.equal('localhost:' + httpPort, data.host);
             assert(!('via' in data));
             done();
           });
@@ -219,19 +219,19 @@ describe('ProxyAgent', function () {
           res.end(JSON.stringify(req.headers));
         });
 
-        var uri = 'https://127.0.0.1:' + proxyHttpsPort;
+        var uri = 'https://localhost:' + proxyHttpsPort;
         var proxy = url.parse(uri);
         proxy.rejectUnauthorized = false;
         var agent = new ProxyAgent(proxy);
 
-        var opts = url.parse('http://127.0.0.1:' + httpPort + '/test');
+        var opts = url.parse('http://localhost:' + httpPort + '/test');
         opts.agent = agent;
 
         var req = http.get(opts, function (res) {
           toBuffer(res, function (err, buf) {
             if (err) return done(err);
             var data = JSON.parse(buf.toString('utf8'));
-            assert.equal('127.0.0.1:' + httpPort, data.host);
+            assert.equal('localhost:' + httpPort, data.host);
             assert('via' in data);
             done();
           });
@@ -246,17 +246,17 @@ describe('ProxyAgent', function () {
           res.end(JSON.stringify(req.headers));
         });
 
-        var uri = 'socks://127.0.0.1:' + socksPort;
+        var uri = 'socks://localhost:' + socksPort;
         var agent = new ProxyAgent(uri);
 
-        var opts = url.parse('http://127.0.0.1:' + httpPort + '/test');
+        var opts = url.parse('http://localhost:' + httpPort + '/test');
         opts.agent = agent;
 
         var req = http.get(opts, function (res) {
           toBuffer(res, function (err, buf) {
             if (err) return done(err);
             var data = JSON.parse(buf.toString('utf8'));
-            assert.equal('127.0.0.1:' + httpPort, data.host);
+            assert.equal('localhost:' + httpPort, data.host);
             done();
           });
         });
@@ -272,10 +272,10 @@ describe('ProxyAgent', function () {
           res.end(JSON.stringify(req.headers));
         });
 
-        var uri = 'http://127.0.0.1:' + proxyPort;
+        var uri = 'http://localhost:' + proxyPort;
         var agent = new ProxyAgent(uri);
 
-        var opts = url.parse('https://127.0.0.1:' + httpsPort + '/test');
+        var opts = url.parse('https://localhost:' + httpsPort + '/test');
         opts.agent = agent;
         opts.rejectUnauthorized = false;
 
@@ -283,7 +283,7 @@ describe('ProxyAgent', function () {
           toBuffer(res, function (err, buf) {
             if (err) return done(err);
             var data = JSON.parse(buf.toString('utf8'));
-            assert.equal('127.0.0.1:' + httpsPort, data.host);
+            assert.equal('localhost:' + httpsPort, data.host);
             done();
           });
         });
@@ -301,12 +301,12 @@ describe('ProxyAgent', function () {
 
         var agent = new ProxyAgent({
           protocol: 'https:',
-          host: '127.0.0.1',
+          host: 'localhost',
           port: proxyHttpsPort,
           rejectUnauthorized: false
         });
 
-        var opts = url.parse('https://127.0.0.1:' + httpsPort + '/test');
+        var opts = url.parse('https://localhost:' + httpsPort + '/test');
         opts.agent = agent;
         opts.rejectUnauthorized = false;
 
@@ -314,7 +314,7 @@ describe('ProxyAgent', function () {
           toBuffer(res, function (err, buf) {
             if (err) return done(err);
             var data = JSON.parse(buf.toString('utf8'));
-            assert.equal('127.0.0.1:' + httpsPort, data.host);
+            assert.equal('localhost:' + httpsPort, data.host);
             assert(gotReq);
             done();
           });
@@ -331,10 +331,10 @@ describe('ProxyAgent', function () {
           res.end(JSON.stringify(req.headers));
         });
 
-        var uri = 'socks://127.0.0.1:' + socksPort;
+        var uri = 'socks://localhost:' + socksPort;
         var agent = new ProxyAgent(uri);
 
-        var opts = url.parse('https://127.0.0.1:' + httpsPort + '/test');
+        var opts = url.parse('https://localhost:' + httpsPort + '/test');
         opts.agent = agent;
         opts.rejectUnauthorized = false;
 
@@ -342,7 +342,7 @@ describe('ProxyAgent', function () {
           toBuffer(res, function (err, buf) {
             if (err) return done(err);
             var data = JSON.parse(buf.toString('utf8'));
-            assert.equal('127.0.0.1:' + httpsPort, data.host);
+            assert.equal('localhost:' + httpsPort, data.host);
             assert(gotReq);
             done();
           });
