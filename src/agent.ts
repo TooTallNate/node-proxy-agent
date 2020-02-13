@@ -1,28 +1,16 @@
-'use strict';
+import url from 'url';
+import LRU from 'lru-cache';
+import Agent from 'agent-base';
+import getProxyForUrl from 'proxy-from-env').getProxyForUrl;
+import http from 'http');
+import https from 'https');
+import createDebug from 'debug';
+import PacProxyAgent from 'pac-proxy-agent');
+import HttpProxyAgent from 'http-proxy-agent');
+import HttpsProxyAgent from 'https-proxy-agent');
+import SocksProxyAgent from 'socks-proxy-agent');
 
-/**
- * Module dependencies.
- */
-
-var url = require('url');
-var LRU = require('lru-cache');
-var Agent = require('agent-base');
-var inherits = require('util').inherits;
-var debug = require('debug')('proxy-agent');
-var getProxyForUrl = require('proxy-from-env').getProxyForUrl;
-
-var http = require('http');
-var https = require('https');
-var PacProxyAgent = require('pac-proxy-agent');
-var HttpProxyAgent = require('http-proxy-agent');
-var HttpsProxyAgent = require('https-proxy-agent');
-var SocksProxyAgent = require('socks-proxy-agent');
-
-/**
- * Module exports.
- */
-
-exports = module.exports = ProxyAgent;
+const debug = createDebug('proxy-agent');
 
 /**
  * Number of `http.Agent` instances to cache.
@@ -30,31 +18,28 @@ exports = module.exports = ProxyAgent;
  * This value was arbitrarily chosen... a better
  * value could be conceived with some benchmarks.
  */
-
-var cacheSize = 20;
+const cacheSize = 20;
 
 /**
  * Cache for `http.Agent` instances.
  */
-
-exports.cache = new LRU(cacheSize);
+const cache = new LRU(cacheSize);
 
 /**
  * Built-in proxy types.
  */
+const proxies = new Map<string, (opts: object, secureEndpoint: boolean) => void>();
+proxies.set('http',  httpOrHttpsProxy);
+proxies.set('https', httpOrHttpsProxy);
+proxies.set('socks', SocksProxyAgent);
+proxies.set('socks4', SocksProxyAgent);
+proxies.set('socks4a', SocksProxyAgent);
+proxies.set('socks5', SocksProxyAgent);
+proxies.set('socks5h', SocksProxyAgent);
 
-exports.proxies = Object.create(null);
-exports.proxies.http = httpOrHttpsProxy;
-exports.proxies.https = httpOrHttpsProxy;
-exports.proxies.socks = SocksProxyAgent;
-exports.proxies.socks4 = SocksProxyAgent;
-exports.proxies.socks4a = SocksProxyAgent;
-exports.proxies.socks5 = SocksProxyAgent;
-exports.proxies.socks5h = SocksProxyAgent;
-
-PacProxyAgent.protocols.forEach(function (protocol) {
-  exports.proxies['pac+' + protocol] = PacProxyAgent;
-});
+for (const protocol of PacProxyAgent.protocols) {
+  proxies.set(`pac+${protocol}`, PacProxyAgent);
+}
 
 function httpOrHttps(opts, secureEndpoint) {
   if (secureEndpoint) {
@@ -77,7 +62,7 @@ function httpOrHttpsProxy(opts, secureEndpoint) {
 }
 
 function mapOptsToProxy(opts) {
-  // NO_PROXY case
+  // `NO_PROXY` case
   if (!opts) {
     return {
       uri: 'no proxy',
