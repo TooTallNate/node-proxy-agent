@@ -44,9 +44,10 @@
     "socks-proxy-agent": "5"
   },
   "devDependencies": {
-    "@types/proxy-from-env": "^1.0.0",
     "@types/debug": "4",
+    "@types/lru-cache": "^5.1.0",
     "@types/node": "^12.12.11",
+    "@types/proxy-from-env": "^1.0.0",
     "@typescript-eslint/eslint-plugin": "1.6.0",
     "@typescript-eslint/parser": "1.1.0",
     "eslint": "5.16.0",
@@ -57,11 +58,11 @@
     "eslint-plugin-jsx-a11y": "6.2.1",
     "eslint-plugin-react": "7.12.4",
     "mocha": "^6.2.2",
-    "rimraf": "^3.0.0",
-    "typescript": "^3.5.3",
     "proxy": "^1.0.1",
+    "rimraf": "^3.0.0",
     "socksv5": "0.0.6",
-    "stream-to-buffer": "0.1.0"
+    "stream-to-buffer": "0.1.0",
+    "typescript": "^3.5.3"
   },
   "engines": {
     "node": ">=6"

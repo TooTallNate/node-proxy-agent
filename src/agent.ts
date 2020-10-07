@@ -1,14 +1,20 @@
 import url from 'url';
+import http from 'http';
+import https from 'https';
 import LRU from 'lru-cache';
-import Agent from 'agent-base';
-import getProxyForUrl from 'proxy-from-env').getProxyForUrl;
-import http from 'http');
-import https from 'https');
 import createDebug from 'debug';
-import PacProxyAgent from 'pac-proxy-agent');
-import HttpProxyAgent from 'http-proxy-agent');
-import HttpsProxyAgent from 'https-proxy-agent');
-import SocksProxyAgent from 'socks-proxy-agent');
+import { getProxyForUrl } from 'proxy-from-env';
+import { HttpProxyAgent } from 'http-proxy-agent';
+import { HttpsProxyAgent } from 'https-proxy-agent';
+import { SocksProxyAgent } from 'socks-proxy-agent';
+import { PacProxyAgent, protocols as pacProtocols } from 'pac-proxy-agent';
+import {
+	Agent,
+	AgentCallbackReturn,
+	ClientRequest,
+	RequestOptions
+} from 'agent-base';
+import { ProxyAgentOptions } from '.';
 
 const debug = createDebug('proxy-agent');
 
@@ -37,7 +43,7 @@ proxies.set('socks4a', SocksProxyAgent);
 proxies.set('socks5', SocksProxyAgent);
 proxies.set('socks5h', SocksProxyAgent);
 
-for (const protocol of PacProxyAgent.protocols) {
+for (const protocol of pacProtocols) {
   proxies.set(`pac+${protocol}`, PacProxyAgent);
 }
 
@@ -115,69 +121,69 @@ function mapOptsToProxy(opts) {
 
 /**
  * Attempts to get an `http.Agent` instance based off of the given proxy URI
- * information, and the `secure` flag.
+ * information.
  *
  * An LRU cache is used, to prevent unnecessary creation of proxy
  * `http.Agent` instances.
  *
  * @param {String} uri proxy url
- * @param {Boolean} secure true if this is for an HTTPS request, false for HTTP
- * @return {http.Agent}
  * @api public
  */
+export default class ProxyAgent extends Agent {
+	constructor(_opts?: string | ProxyAgentOptions) {
+		const opts: ProxyAgentOptions = typeof _opts === 'string' ? url.parse(_opts) : _opts;
+		debug('Creating new ProxyAgent instance: %o', opts);
+		super(opts || {});
 
-function ProxyAgent (opts) {
-  if (!(this instanceof ProxyAgent)) return new ProxyAgent(opts);
-  debug('creating new ProxyAgent instance: %o', opts);
-  Agent.call(this, connect);
+		const proxy = mapOptsToProxy(opts);
+		this.proxy = proxy.opts;
+		this.proxyUri = proxy.uri;
+		this.proxyFn = proxy.fn;
+	}
 
-  if (opts) {
-    var proxy = mapOptsToProxy(opts);
-    this.proxy = proxy.opts;
-    this.proxyUri = proxy.uri;
-    this.proxyFn = proxy.fn;
-  }
-}
-inherits(ProxyAgent, Agent);
+	/**
+	 * Called when the node-core HTTP client library is creating a new HTTP request.
+	 *
+	 * @api protected
+	 */
+	async callback(
+		req: ClientRequest,
+		opts: RequestOptions
+	): Promise<AgentCallbackReturn> {
+		var proxyOpts = this.proxy;
+		var proxyUri = this.proxyUri;
+		var proxyFn = this.proxyFn;
 
-/**
- *
- */
+		// if we did not instantiate with a proxy, set one per request
+		if (!proxyOpts) {
+			var urlOpts = getProxyForUrl(opts);
+			var proxy = mapOptsToProxy(urlOpts, opts);
+			proxyOpts = proxy.opts;
+			proxyUri = proxy.uri;
+			proxyFn = proxy.fn;
+		}
 
-function connect (req, opts, fn) {
-  var proxyOpts = this.proxy;
-  var proxyUri = this.proxyUri;
-  var proxyFn = this.proxyFn;
+		// create the "key" for the LRU cache
+		var key = proxyUri;
+		if (opts.secureEndpoint) key += ' secure';
 
-  // if we did not instantiate with a proxy, set one per request
-  if (!proxyOpts) {
-    var urlOpts = getProxyForUrl(opts);
-    var proxy = mapOptsToProxy(urlOpts, opts);
-    proxyOpts = proxy.opts;
-    proxyUri = proxy.uri;
-    proxyFn = proxy.fn;
-  }
+		// attempt to get a cached `http.Agent` instance first
+		var agent = exports.cache.get(key);
+		if (!agent) {
+			// get an `http.Agent` instance from protocol-specific agent function
+			agent = proxyFn(proxyOpts, opts.secureEndpoint);
+			if (agent) {
+				exports.cache.set(key, agent);
+			}
+		} else {
+			debug('cache hit with key: %o', key);
+		}
 
-  // create the "key" for the LRU cache
-  var key = proxyUri;
-  if (opts.secureEndpoint) key += ' secure';
-
-  // attempt to get a cached `http.Agent` instance first
-  var agent = exports.cache.get(key);
-  if (!agent) {
-    // get an `http.Agent` instance from protocol-specific agent function
-    agent = proxyFn(proxyOpts, opts.secureEndpoint);
-    if (agent) {
-      exports.cache.set(key, agent);
-    }
-  } else {
-    debug('cache hit with key: %o', key);
-  }
-
-  if (!proxyOpts) {
-    agent.addRequest(req, opts);
-  } else {
-    // XXX: agent.callback() is an agent-base-ism
-    agent.callback(req, opts, fn);
-  }
+		if (!proxyOpts) {
+			agent.addRequest(req, opts);
+		} else {
+			// XXX: agent.callback() is an agent-base-ism
+			agent.callback(req, opts, fn);
+		}
+	}
 }
