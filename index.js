@@ -144,7 +144,7 @@ function mapOptsToProxy(opts) {
 function ProxyAgent (opts) {
   if (!(this instanceof ProxyAgent)) return new ProxyAgent(opts);
   debug('creating new ProxyAgent instance: %o', opts);
-  Agent.call(this, connect);
+  Agent.call(this);
 
   if (opts) {
     var proxy = mapOptsToProxy(opts);
@@ -159,7 +159,7 @@ inherits(ProxyAgent, Agent);
  *
  */
 
-function connect (req, opts, fn) {
+ProxyAgent.prototype.callback = function(req, opts, fn) {
   var proxyOpts = this.proxy;
   var proxyUri = this.proxyUri;
   var proxyFn = this.proxyFn;
@@ -193,6 +193,8 @@ function connect (req, opts, fn) {
     agent.addRequest(req, opts);
   } else {
     // XXX: agent.callback() is an agent-base-ism
-    agent.callback(req, opts, fn);
+    agent.callback(req, opts)
+      .then(function(socket) { fn(null, socket); })
+      .catch(function(error) { fn(error); });
   }
 }
