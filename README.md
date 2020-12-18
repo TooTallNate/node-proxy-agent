@@ -4,7 +4,9 @@ proxy-agent
 [![Build Status](https://travis-ci.org/TooTallNate/node-proxy-agent.svg?branch=master)](https://travis-ci.org/TooTallNate/node-proxy-agent)
 
 This module provides a function that returns proxying `http.Agent` instances to
-use based off of a given proxy URI.
+use based off of a given proxy URI. If no URI is provided, then
+[proxy-from-env](https://www.npmjs.com/package/proxy-from-env) is used to get the URI
+from `$HTTP_PROXY`, `$HTTPS_PROXY` and `$NO_PROXY` among others.
 
 An LRU cache is used so that `http.Agent` instances are transparently re-used for
 subsequent HTTP requests to the same proxy server.
@@ -47,6 +49,8 @@ var opts = {
   host: 'jsonip.org',
   path: '/',
   // this is the important part!
+  // If no proxyUri is specified, then https://www.npmjs.com/package/proxy-from-env
+  // is used to get the proxyUri.
   agent: new ProxyAgent(proxyUri)
 };
 
