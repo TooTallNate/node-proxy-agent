@@ -1,6 +1,6 @@
 {
   "name": "proxy-agent",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Maps proxy protocols to `http.Agent` implementations",
   "main": "index.js",
   "scripts": {
