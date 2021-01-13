@@ -174,7 +174,8 @@ ProxyAgent.prototype.callback = function(req, opts, fn) {
   }
 
   // create the "key" for the LRU cache
-  var key = proxyUri;
+  var key = proxyOpts.proxyAgentCacheKey || proxyUri;
+
   if (opts.secureEndpoint) key += ' secure';
 
   // attempt to get a cached `http.Agent` instance first
