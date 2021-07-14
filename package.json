@@ -7,7 +7,7 @@
     "test": "mocha --reporter spec"
   },
   "engines": {
-    "node": ">=6"
+    "node": ">= 8"
   },
   "repository": {
     "type": "git",
