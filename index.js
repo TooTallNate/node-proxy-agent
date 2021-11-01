@@ -9,7 +9,7 @@ var LRU = require('lru-cache');
 var Agent = require('agent-base');
 var inherits = require('util').inherits;
 var debug = require('debug')('proxy-agent');
-var getProxyForUrl = require('proxy-from-env').getProxyForUrl;
+var envGetProxyForUrl = require('proxy-from-env').getProxyForUrl;
 
 var http = require('http');
 var https = require('https');
@@ -98,7 +98,7 @@ function mapOptsToProxy(opts) {
   var protocol = opts.protocol;
   if (!protocol) {
     throw new TypeError('You must specify a "protocol" for the ' +
-                        'proxy type (' + Object.keys(proxies).join(', ') + ')');
+      'proxy type (' + Object.keys(proxies).join(', ') + ')');
   }
 
   // strip the trailing ":" if present
@@ -141,12 +141,16 @@ function mapOptsToProxy(opts) {
  * @api public
  */
 
-function ProxyAgent (opts) {
+function ProxyAgent(opts) {
   if (!(this instanceof ProxyAgent)) return new ProxyAgent(opts);
   debug('creating new ProxyAgent instance: %o', opts);
   Agent.call(this);
 
   if (opts) {
+    if (opts.getProxyForUrl) {
+      this.getProxyForUrl = opts.getProxyForUrl;
+      return;
+    }
     var proxy = mapOptsToProxy(opts);
     this.proxy = proxy.opts;
     this.proxyUri = proxy.uri;
@@ -159,10 +163,12 @@ inherits(ProxyAgent, Agent);
  *
  */
 
-ProxyAgent.prototype.callback = function(req, opts, fn) {
+ProxyAgent.prototype.callback = function (req, opts, fn) {
   var proxyOpts = this.proxy;
   var proxyUri = this.proxyUri;
   var proxyFn = this.proxyFn;
+  var getProxyForUrl = this.getProxyForUrl || envGetProxyForUrl;
+
 
   // if we did not instantiate with a proxy, set one per request
   if (!proxyOpts) {
@@ -194,7 +200,7 @@ ProxyAgent.prototype.callback = function(req, opts, fn) {
   } else {
     // XXX: agent.callback() is an agent-base-ism
     agent.callback(req, opts)
-      .then(function(socket) { fn(null, socket); })
-      .catch(function(error) { fn(error); });
+      .then(function (socket) { fn(null, socket); })
+      .catch(function (error) { fn(error); });
   }
 }

@@ -47,10 +47,10 @@ describe('ProxyAgent', function () {
 
   before(function (done) {
     // setup SOCKS proxy server
-    socksServer = socks.createServer(function(info, accept, deny) {
+    socksServer = socks.createServer(function (info, accept, deny) {
       accept();
     });
-    socksServer.listen(function() {
+    socksServer.listen(function () {
       socksPort = socksServer.address().port;
       done();
     });
@@ -344,6 +344,40 @@ describe('ProxyAgent', function () {
             var data = JSON.parse(buf.toString('utf8'));
             assert.equal('localhost:' + httpsPort, data.host);
             assert(gotReq);
+            done();
+          });
+        });
+        req.once('error', done);
+      });
+    });
+
+    describe('with getProxyForUrl function', function () {
+      it('should call provided function', function (done) {
+        var gotCall = false;
+        var urlParameter;
+        httpServer.once('request', function (req, res) {
+          res.end(JSON.stringify(req.headers));
+        });
+
+        var agent = new ProxyAgent({
+          getProxyForUrl: (u) => {
+            gotCall = true;
+            urlParameter = u;
+            return 'http://localhost:' + proxyPort;
+          }
+        });
+        var requestUrl = 'http://localhost:' + httpPort + '/test';
+        var opts = url.parse(requestUrl);
+        opts.agent = agent;
+
+        var req = http.get(opts, function (res) {
+          toBuffer(res, function (err, buf) {
+            if (err) return done(err);
+            var data = JSON.parse(buf.toString('utf8'));
+            assert.equal('localhost:' + httpPort, data.host);
+            assert('via' in data);
+            assert(gotCall);
+            assert.equal(requestUrl, urlParameter.href)
             done();
           });
         });

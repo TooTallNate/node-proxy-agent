@@ -7,9 +7,13 @@ declare module ProxyAgent {
 
 declare const proxy: ProxyAgentConstructor;
 
+type ProxyAgentOptions = AgentOptions | {
+	getProxyForUrl: (url: string) => string;
+}
+
 interface ProxyAgentConstructor {
-    (options?: AgentOptions | string): ProxyAgent.ProxyAgent;
-    new (options?: AgentOptions | string): ProxyAgent.ProxyAgent;
+    (options?: ProxyAgentOptions | string): ProxyAgent.ProxyAgent;
+    new (options?: ProxyAgentOptions | string): ProxyAgent.ProxyAgent;
 }
 
 export = proxy;
