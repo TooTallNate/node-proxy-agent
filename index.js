@@ -128,6 +128,15 @@ function mapOptsToProxy(opts) {
   }
 }
 
+function regexProtocol(protocol){
+  if (typeof protocol !== 'string' || !protocol) {
+    throw new TypeError('The proxy protocol is not valid ');
+  }
+  if(protocol == 'http' || protocol == 'https' || protocol == 'socks'){
+    return true;
+  } 
+  throw new TypeError('Unsupported proxy protocol: "' + protocol + '"');
+}
 /**
  * Attempts to get an `http.Agent` instance based off of the given proxy URI
  * information, and the `secure` flag.
@@ -141,8 +150,8 @@ function mapOptsToProxy(opts) {
  * @api public
  */
 
-function ProxyAgent (opts) {
-  if (!(this instanceof ProxyAgent)) return new ProxyAgent(opts);
+function ProxyAgent (opts, agentProtocol) {
+  if (!(this instanceof ProxyAgent)) return new ProxyAgent(opts, agentProtocol);
   debug('creating new ProxyAgent instance: %o', opts);
   Agent.call(this);
 
@@ -151,6 +160,9 @@ function ProxyAgent (opts) {
     this.proxy = proxy.opts;
     this.proxyUri = proxy.uri;
     this.proxyFn = proxy.fn;
+  }
+  if(agentProtocol && regexProtocol(agentProtocol)){
+    this.protocol = agentProtocol + ":";
   }
 }
 inherits(ProxyAgent, Agent);

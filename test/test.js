@@ -350,5 +350,26 @@ describe('ProxyAgent', function () {
         req.once('error', done);
       });
     });
+
+    describe('set agentProxy', function(){
+      it('set http', function(){
+        var proxy = ProxyAgent({ host: 'localhost', port: 8080, protocol:'http:' }, 'https');
+        assert.equal(proxy.protocol, 'https:');
+      })
+      it('no set', function(){
+        var proxy = ProxyAgent({ host: 'localhost', port: 8080, protocol:'http:' });
+        assert.equal(proxy.protocol, 'http:');
+      })
+      it('set not valid proxy', function(){
+      assert.throws(function () {
+        ProxyAgent({ host: 'localhost', port: 8080, protocol:'http:' }, 'novalid');
+      },function (e) {
+        return 'TypeError' === e.name &&
+          /Unsupported proxy protocol/.test(e.message) &&
+          /\bnovalid\b/.test(e.message);
+      });
+      })
+    })
+    
   });
 });
